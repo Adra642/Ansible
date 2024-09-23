@@ -1,19 +1,18 @@
 - hosts: localhost
+  connection: local
+
+  vars_prompt:
+    - name: user_email
+      prompt: "Please enter your email for Git and SSH key"
+      private: no
+      
+    - name: user_name
+      prompt: "Please enter your name for Git"
+      private: no
 
   tasks:
-    - name: Ejecutar whoami sin escalación de privilegios
-      command: whoami
-      register: whoami_no_become
-
-    - name: Mostrar resultado de whoami sin escalación
-      debug:
-        msg: "El usuario actual sin escalación es: {{ whoami_no_become.stdout }}"
-
-    - name: Ejecutar whoami con escalación de privilegios
-      command: whoami
-      become: true
-      register: whoami_with_become
-
-    - name: Mostrar resultado de whoami con escalación
-      debug:
-        msg: "El usuario actual con escalación es: {{ whoami_with_become.stdout }}"
+    - name: Set Git user email
+      command: git config --global user.email "{{ user_email }}"
+    
+    - name: Set Git user name
+      command: git config --global user.name "{{ user_name }}"

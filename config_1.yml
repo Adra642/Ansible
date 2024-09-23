@@ -3,23 +3,24 @@
   become: yes
 
   tasks:
+    - name: Asegurarse de que el módulo community.general esté instalado
+      ansible.builtin.import_role:
+        name: community.general.dnf_config_manager
+
     - name: Install RPM Fusion Free and Non-Free Repositories
       command: >
         dnf install -y
         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_version }}.noarch.rpm
         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_version }}.noarch.rpm
         
-    - name: Deshabilitar el repositorio de Google Chrome
-      command: dnf config-manager --set-disabled google-chrome
-
-    - name: Deshabilitar el repositorio de PyCharm
-      command: dnf config-manager --set-disabled copr:copr.fedorainfracloud.org:phracek:PyCharm
-
-    - name: Deshabilitar el repositorio de NVIDIA
-      command: dnf config-manager --set-disabled rpmfusion-nonfree-nvidia-driver
-
-    - name: Deshabilitar el repositorio de Steam
-      command: dnf config-manager --set-disabled rpmfusion-nonfree-steam
+    - name: Deshabilitar repositorios específicos
+      community.general.dnf_config_manager:
+        name:
+          - google-chrome
+          - copr:copr.fedorainfracloud.org:phracek:PyCharm
+          - rpmfusion-nonfree-nvidia-driver
+          - rpmfusion-nonfree-steam
+        state: disabled
 
     - name: Configure dnf
       lineinfile:
@@ -39,3 +40,8 @@
         name: "*"
         state: latest
 
+    - name: Install Oh-My-Zsh
+      shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended"
+      args:
+        creates: ~/.oh-my-zsh
+      become: false

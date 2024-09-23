@@ -36,3 +36,20 @@
         name: "{{ target_user }}"
         groups: docker
         append: yes
+
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+        
+    - name: Pull multiple Docker images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: present
+        source: pull 
+      loop:
+        - postgres
+        - mysql
+        - sonarqube
+        - alpine
+      become: false

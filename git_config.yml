@@ -1,0 +1,35 @@
+- hosts: localhost
+  connection: local
+
+  vars_prompt:
+    - name: user_email
+      prompt: "Please enter your email for Git and SSH key"
+      private: no
+      
+    - name: user_name
+      prompt: "Please enter your name for Git"
+      private: no
+
+  tasks:
+    - name: Set Git user email
+      command: git config --global user.email "{{ user_email }}"
+    
+    - name: Set Git user name
+      command: git config --global user.name "{{ user_name }}"
+
+  tasks:        
+    - name: Create .ssh directory in home
+      file:
+        path: "{{ ansible_env.HOME }}/.ssh"
+        state: directory
+        mode: "0755"
+
+    - name: Generate SSH key
+      command: ssh-keygen -t ed25519 -C "{{ user_email }}" -f "{{ ansible_env.HOME }}/.ssh/id_ed25519" -N ""
+      args:
+        creates: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+
+    - name: Start SSH agent
+      shell: |
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_ed25519

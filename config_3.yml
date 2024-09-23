@@ -3,54 +3,58 @@
   become: yes
 
   tasks:
-    - name: Install Flatpak packages
-      flatpak:
-        name:
-          - com.brave.Browser
-          - com.discordapp.Discord
-          - com.spotify.Client
-          - com.jetbrains.IntelliJ-IDEA-Ultimate
-          - com.getpostman.Postman
-          - org.wezfurlong.wezterm
-          - net.kuribo64.melonDS
-          - us.zoom.Zoom
-          - com.obsproject.Studio
+    - name: Import Microsoft GPG key
+      rpm_key:
+        state: present
+        key: https://packages.microsoft.com/keys/microsoft.asc
+
+    - name: Add Visual Studio Code repository
+      copy:
+        dest: /etc/yum.repos.d/vscode.repo
+        content: |
+          [code]
+          name=Visual Studio Code
+          baseurl=https://packages.microsoft.com/yumrepos/vscode
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+
+    - name: Update DNF cache
+      command: dnf check-update
+
+    - name: Install Visual Studio Code
+      dnf:
+        name: code
         state: present
 
-    - name: Install DNF packages
-      dnf:
-        name:
-          - gnome-tweaks
-          - vlc
-          - alacritty
-          - htop
-          - papirus-icon-theme
-          - fastfetch
-          - neovim
-          - bat
-          - gnome-extensions-app
-          - jetbrains-mono-fonts-all
-          - cascadia-fonts-all
-          - gparted
-          - pip
-          - fzf
-          - eza
-        state: present
+    - name: Enable Zellij COPR repository
+      command: dnf copr enable varlad/zellij -y
+      register: enable_copr
+      changed_when: enable_copr.rc == 0
 
-    - name: Install Multimedia plugins
+    - name: Install Zellij
       dnf:
-        name: "@Multimedia"
+        name: zellij
         state: present
+      register: install_zellij
+      when: enable_copr is succeeded
 
-    - name: Remove unwanted GNOME software
-      dnf:
-        name:
-          - firefox
-          - gnome-tour
-          - totem
-          - mediawriter
-          - yelp
-          - gnome-contacts
-          - rhythmbox
-          - gnome-boxes
-        state: absent
+    - name: Add Zellij auto-start to .zshrc
+      lineinfile:
+        path: ~/.zshrc
+        line: 'eval "$(zellij setup --generate-auto-start zsh)"'
+        create: yes
+      become: false
+
+    - name: Agregar fzf al archivo .zshrc
+      lineinfile:
+        path: ~/.zshrc
+        line: 'source <(fzf --zsh)'
+        create: yes
+      become: false
+
+    - name: Install Papirus Folders
+      shell: wget -qO- https://git.io/papirus-folders-install | sh
+
+    - name: Change Papirus Folder Color
+      shell: papirus-folders -C bluegrey --theme Papirus
