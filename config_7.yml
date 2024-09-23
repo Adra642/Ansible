@@ -1,0 +1,47 @@
+- hosts: localhost
+  connection: local
+  
+  tasks:
+    - name: Crear directorio para fuentes
+      file:
+        path: ~/.local/share/fonts
+        state: directory
+
+    - name: Descargar IosevkaTerm.zip
+      get_url:
+        url: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip
+        dest: ~/Downloads/IosevkaTerm.zip
+
+    - name: Crear directorio para descompresión
+      file:
+        path: ~/.local/share/fonts/IosevkaTerm
+        state: directory
+        
+    - name: Descomprimir IosevkaTerm.zip
+      unarchive:
+        src: ~/Downloads/IosevkaTerm.zip
+        dest: ~/.local/share/fonts/IosevkaTerm
+        remote_src: yes
+
+    - name: Actualizar la caché de fuentes
+      command: fc-cache -v
+
+    - name: Clonar Vimix-cursors
+      git:
+        repo: https://github.com/vinceliuice/Vimix-cursors.git
+        dest: ~/Downloads/Vimix-cursors
+
+    - name: Ejecutar script de instalación para Vimix-cursors
+      command: ./install.sh
+      args:
+        chdir: ~/Downloads/Vimix-cursors
+
+    - name: Clonar Orchis-theme
+      git:
+        repo: https://github.com/vinceliuice/Orchis-theme.git
+        dest: ~/Downloads/Orchis-theme
+
+    - name: Ejecutar script de instalación para Orchis-theme
+      command: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
+      args:
+        chdir: ~/Downloads/Orchis-theme

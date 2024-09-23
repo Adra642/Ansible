@@ -1,0 +1,41 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Install RPM Fusion Free and Non-Free Repositories
+      command: >
+        dnf install -y
+        https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_version }}.noarch.rpm
+        https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_version }}.noarch.rpm
+        
+    - name: Deshabilitar el repositorio de Google Chrome
+      command: dnf config-manager --set-disabled google-chrome
+
+    - name: Deshabilitar el repositorio de PyCharm
+      command: dnf config-manager --set-disabled copr:copr.fedorainfracloud.org:phracek:PyCharm
+
+    - name: Deshabilitar el repositorio de NVIDIA
+      command: dnf config-manager --set-disabled rpmfusion-nonfree-nvidia-driver
+
+    - name: Deshabilitar el repositorio de Steam
+      command: dnf config-manager --set-disabled rpmfusion-nonfree-steam
+
+    - name: Configure dnf
+      lineinfile:
+        path: /etc/dnf/dnf.conf
+        line: "max_parallel_downloads=10"
+        create: yes
+
+    - name: Install Git & Zsh
+      dnf:
+        name: 
+          - git
+          - zsh
+        state: present
+        
+    - name: Update all packages
+      dnf:
+        name: "*"
+        state: latest
+

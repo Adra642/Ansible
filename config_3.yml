@@ -1,0 +1,56 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Install Flatpak packages
+      flatpak:
+        name:
+          - com.brave.Browser
+          - com.discordapp.Discord
+          - com.spotify.Client
+          - com.jetbrains.IntelliJ-IDEA-Ultimate
+          - com.getpostman.Postman
+          - org.wezfurlong.wezterm
+          - net.kuribo64.melonDS
+          - us.zoom.Zoom
+          - com.obsproject.Studio
+        state: present
+
+    - name: Install DNF packages
+      dnf:
+        name:
+          - gnome-tweaks
+          - vlc
+          - alacritty
+          - htop
+          - papirus-icon-theme
+          - fastfetch
+          - neovim
+          - bat
+          - gnome-extensions-app
+          - jetbrains-mono-fonts-all
+          - cascadia-fonts-all
+          - gparted
+          - pip
+          - fzf
+          - eza
+        state: present
+
+    - name: Install Multimedia plugins
+      dnf:
+        name: "@Multimedia"
+        state: present
+
+    - name: Remove unwanted GNOME software
+      dnf:
+        name:
+          - firefox
+          - gnome-tour
+          - totem
+          - mediawriter
+          - yelp
+          - gnome-contacts
+          - rhythmbox
+          - gnome-boxes
+        state: absent

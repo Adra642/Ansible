@@ -1,0 +1,38 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars_prompt:
+    - name: target_user
+      prompt: "Add user name for docker group"
+      private: no
+      
+  tasks:
+    - name: Install dnf-plugins-core
+      dnf:
+        name: dnf-plugins-core
+        state: present
+
+    - name: Add Docker repository
+      command: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+
+    - name: Install Docker packages
+      dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Create Docker group
+      group:
+        name: docker
+        state: present
+        
+    - name: Add user to Docker group
+      ansible.builtin.user:
+        name: "{{ target_user }}"
+        groups: docker
+        append: yes
