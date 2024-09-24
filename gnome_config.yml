@@ -2,23 +2,25 @@
   connection: local
  
   tasks:
-    - name: Cambiar el tema a oscuro
-      command: gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+    - name: Change theme to dark
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
-    - name: Configurar teclado a latinoamericano
-      command: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
-    
-    - name: Crear un atajo de teclado para abrir WezTerm
-      command: |
-        gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"    
-    - name: Establecer el comando para el atajo WezTerm
-      command: |
-        gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ name 'WezTerm'    
-    
-    - name: Establecer el comando del atajo WezTerm
-      command: |
-        gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ command 'flatpak run org.wezfurlong.wezterm'
-    
-    - name: Establecer la combinación de teclas para WezTerm
-      command: |
-        gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ binding '<Control><Alt>t'
+    - name: Set keyboard layout to Latin American
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
+
+    - name: Create keyboard shortcut to open WezTerm
+      ansible.builtin.command: gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+
+    - name: Set WezTerm keybind
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ {{ item.action }} {{ item.value }}
+      loop:
+        - { action: "name", value: "'WezTerm'" }
+        - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
+        - { action: "binding", value: "'<Control><Alt>t'" }
+
+    - name: Create keyboard shortcut to show desktop
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.desktop.wm.keybindings show-desktop "['<Super>d']"
