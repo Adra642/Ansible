@@ -26,15 +26,19 @@
         state: directory
         mode: "0700"
 
-    - name: Generate SSH key
-      ansible.builtin.command:
-        cmd: ssh-keygen -t ed25519 -C "{{ user_email }}" -f "{{ ansible_env.HOME }}/.ssh/id_ed25519" -N ""
-      args:
-        creates: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    - name: Generate an OpenSSH keypair using ed25519
+      community.crypto.openssh_keypair:
+        path: "~/.ssh/id_ed25519_github"
+        comment: "{{ user_email }}"
+        type: ed25519
+        mode: '0600'
+        state: present
+      register: ssh_key
 
     - name: Start SSH agent
       ansible.builtin.shell: |
         eval "$(ssh-agent -s)"
-        ssh-add ~/.ssh/id_ed25519
+        ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519_github
       args:
         executable: /bin/bash
+      when: ssh_key.changed

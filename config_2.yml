@@ -1,10 +1,10 @@
 - hosts: localhost
   connection: local
-  become: yes
+  become: true
 
   tasks:
     - name: Install Flatpak packages
-      flatpak:
+      ansible.builtin.flatpak:
         name:
           - com.brave.Browser
           - com.discordapp.Discord
@@ -15,10 +15,11 @@
           - net.kuribo64.melonDS
           - us.zoom.Zoom
           - com.obsproject.Studio
+          - com.mattjakeman.ExtensionManager
         state: present
 
     - name: Install DNF packages
-      dnf:
+      ansible.builtin.dnf5:
         name:
           - gnome-tweaks
           - vlc
@@ -35,15 +36,16 @@
           - pip
           - fzf
           - eza
+          - maven
         state: present
 
     - name: Install Multimedia plugins
-      dnf:
+      ansible.builtin.dnf5:
         name: "@Multimedia"
         state: present
 
     - name: Remove unwanted GNOME software
-      dnf:
+      ansible.builtin.dnf5:
         name:
           - firefox
           - gnome-tour

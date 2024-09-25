@@ -1,47 +1,57 @@
 - hosts: localhost
   connection: local
-  
+
+  vars:
+    font : { name: "IosevkaTerm", url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip" }
+    font_dir: "{{ ansible_env.HOME }}/.local/share/fonts"
+    download_dir: "{{ ansible_env.HOME }}/Downloads"
+    repos:
+      - { name: "Vimix-cursors", url: "https://github.com/vinceliuice/Vimix-cursors.git" }
+      - { name: "Orchis-theme", url: "https://github.com/vinceliuice/Orchis-theme.git" }
+
   tasks:
-    - name: Crear directorio para fuentes
-      file:
-        path: ~/.local/share/fonts
+    - name: Create directories for fonts
+      ansible.builtin.file:
+        path: "{{ font_dir }}/{{ font.name }}"
         state: directory
+        mode: "0755"
 
-    - name: Descargar IosevkaTerm.zip
-      get_url:
-        url: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip
-        dest: ~/Downloads/IosevkaTerm.zip
+    - name: Download font zip file
+      ansible.builtin.get_url:
+        url: "{{ font.url }}"
+        dest: "{{ download_dir }}/{{ font.name }}.zip"
 
-    - name: Crear directorio para descompresión
-      file:
-        path: ~/.local/share/fonts/IosevkaTerm
-        state: directory
-        
-    - name: Descomprimir IosevkaTerm.zip
-      unarchive:
-        src: ~/Downloads/IosevkaTerm.zip
-        dest: ~/.local/share/fonts/IosevkaTerm
-        remote_src: yes
+    - name: Unzip font file
+      ansible.builtin.unarchive:
+        src: "{{ download_dir }}/{{ font.name }}.zip"
+        dest: "{{ font_dir }}/{{ font.name }}"
+      notify: Update font cache
 
-    - name: Actualizar la caché de fuentes
-      command: fc-cache -v
+    - name: Clone theme and cursor repositories
+      ansible.builtin.git:
+        repo: "{{ item.url }}"
+        dest: "{{ download_dir }}/{{ item.name }}"
+      loop: "{{ repos }}"
 
-    - name: Clonar Vimix-cursors
-      git:
-        repo: https://github.com/vinceliuice/Vimix-cursors.git
-        dest: ~/Downloads/Vimix-cursors
-
-    - name: Ejecutar script de instalación para Vimix-cursors
-      command: ./install.sh
+    - name: Run installation script for Vimix-cursors
+      ansible.builtin.shell: ./install.sh
       args:
-        chdir: ~/Downloads/Vimix-cursors
+        chdir: "{{ download_dir }}/Vimix-cursors"
 
-    - name: Clonar Orchis-theme
-      git:
-        repo: https://github.com/vinceliuice/Orchis-theme.git
-        dest: ~/Downloads/Orchis-theme
-
-    - name: Ejecutar script de instalación para Orchis-theme
-      command: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
+    - name: Run installation script for Orchis-theme
+      ansible.builtin.shell: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
       args:
-        chdir: ~/Downloads/Orchis-theme
+        chdir: "{{ download_dir }}/Orchis-theme"
+
+    - name: Clean up specific files and directories in Downloads
+      ansible.builtin.file:
+        path: "{{ download_dir }}/{{ item }}"
+        state: absent
+      loop:
+        - Vimix-cursors
+        - Orchis-theme
+        - IosevkaTerm.zip
+
+  handlers:
+    - name: Update font cache
+      ansible.builtin.command: fc-cache -v

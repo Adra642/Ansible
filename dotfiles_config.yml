@@ -1,0 +1,75 @@
+- hosts: localhost
+
+  vars:
+    projects_dir: ~/Documents/Projects
+    dotfiles_repo: "{{ projects_dir }}/dotfiles"
+    config: ~/.config
+
+  tasks:
+    - name: Crear directorio para proyectos
+      ansible.builtin.file:
+        path: "{{ projects_dir }}"
+        state: directory
+
+    - name: Clonar el repositorio de dotfiles
+      ansible.builtin.git:
+        repo: git@github.com:Adra642/dotfiles.git
+        dest: "{{ dotfiles_repo }}"
+        update: true
+
+    - name: Crear directorios necesarios en config
+      ansible.builtin.file:
+        path: "{{ config }}/{{ item }}"
+        state: directory
+      loop:
+        - wezterm
+        - alacritty
+        - zellij/layouts
+        - zellij/plugins
+        - zellij/theme
+        - color_selector
+
+    - name: Crear enlaces simbólicos
+      ansible.builtin.file:
+        src: "{{ dotfiles_repo }}/{{ item }}"
+        dest: "{{ config }}/{{ item }}"
+        state: link
+      loop:
+        - wezterm/wezterm.lua
+        - wezterm/color.lua
+        - alacritty/alacritty.toml
+        - alacritty/current_scheme.toml
+        - zellij/config.kdl
+        - zellij/layouts/work.kdl
+        - zellij/theme/scheme.kdl
+        - color_selector/color_schemes.toml
+        - color_selector/alacritty_color.py
+        - color_selector/color_scheme_selector.py
+        - color_selector/wezterm_color.py
+        - color_selector/zellij_color.py
+
+    - name: Descargar zjstatus.wasm en plugins
+      ansible.builtin.get_url:
+        url: https://github.com/dj95/zjstatus/releases/download/v0.17.0/zjstatus.wasm
+        dest: "{{ config }}/zellij/plugins/zjstatus.wasm"
+        mode: '0644'
+        
+    - name: Crear enlace simbólico para adra.zsh-theme en temas de Oh My Zsh
+      ansible.builtin.file:
+        src: "{{ dotfiles_repo }}/zsh/adra.zsh-theme"
+        dest: ~/.oh-my-zsh/custom/themes/adra.zsh-theme
+        state: link
+   
+    - name: Clonar plugins de zsh
+      ansible.builtin.git:
+        repo: "https://github.com/zsh-users/{{ item }}.git"
+        dest: "{{ lookup('env', 'ZSH') | default('~/.oh-my-zsh') }}/custom/plugins/{{ item }}"
+        update: true
+      loop:
+        - zsh-autosuggestions
+        - zsh-syntax-highlighting
+
+    - name: Instalar toml usando pip
+      ansible.builtin.pip:
+        name: toml
+        state: present

@@ -1,47 +1,56 @@
 - hosts: localhost
   connection: local
-  become: yes
 
   tasks:
-    - name: Asegurarse de que el módulo community.general esté instalado
-      ansible.builtin.import_role:
-        name: community.general.dnf_config_manager
+    - name: Root tasks
+      block:
+        - name: Install RPM Fusion Free and Non-Free Repositories
+          ansible.builtin.dnf:
+            name:
+              - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_version }}.noarch.rpm"
+              - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_version }}.noarch.rpm"
+            state: present
+            disable_gpg_check: true
+            
+        - name: Disable unused repositories
+          community.general.dnf_config_manager:
+            name:
+              - google-chrome
+              - copr:copr.fedorainfracloud.org:phracek:PyCharm
+              - rpmfusion-nonfree-nvidia-driver
+              - rpmfusion-nonfree-steam
+            state: disabled
 
-    - name: Install RPM Fusion Free and Non-Free Repositories
-      command: >
-        dnf install -y
-        https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_version }}.noarch.rpm
-        https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_version }}.noarch.rpm
-        
-    - name: Deshabilitar repositorios específicos
-      community.general.dnf_config_manager:
-        name:
-          - google-chrome
-          - copr:copr.fedorainfracloud.org:phracek:PyCharm
-          - rpmfusion-nonfree-nvidia-driver
-          - rpmfusion-nonfree-steam
-        state: disabled
+        - name: Configure dnf
+          ansible.builtin.lineinfile:
+            path: /etc/dnf/dnf.conf
+            line: "max_parallel_downloads=10"
+            create: true
+            state: present
 
-    - name: Configure dnf
-      lineinfile:
-        path: /etc/dnf/dnf.conf
-        line: "max_parallel_downloads=10"
-        create: yes
+        - name: Install basic programs
+          ansible.builtin.dnf:
+            name: 
+              - git
+              - zsh
+              - dnf5 # Remove in Fedora 41
+            state: present
 
-    - name: Install Git & Zsh
-      dnf:
-        name: 
-          - git
-          - zsh
-        state: present
-        
-    - name: Update all packages
-      dnf:
-        name: "*"
-        state: latest
+        - name: Update all packages
+          ansible.builtin.dnf5:
+            name: "*"
+            state: latest
+      become: true
+     
+    - name: No root tasks
+      block:    
+      - name: Install Oh-My-Zsh
+        ansible.builtin.shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended"
+        args:
+          creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
 
-    - name: Install Oh-My-Zsh
-      shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended"
-      args:
-        creates: ~/.oh-my-zsh
+      - name: Set Zsh as default shell
+        ansible.builtin.user:
+            name: "{{ ansible_env.USER }}"
+            shell: /bin/zsh
       become: false
