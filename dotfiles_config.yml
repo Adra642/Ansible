@@ -69,6 +69,20 @@
         - zsh-autosuggestions
         - zsh-syntax-highlighting
 
+    - name: Add zsh plugins to .zshrc
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        regexp: '^plugins=\((.*)\)$'
+        line: 'plugins=(\1 {{ item }})'
+        backrefs: yes
+        create: true
+      loop:
+        - zsh-autosuggestions
+        - zsh-syntax-highlighting
+        - docker
+        - sudo
+      when: item not in lookup('file', ansible_env.HOME + '/.zshrc')
+
     - name: Instalar toml usando pip
       ansible.builtin.pip:
         name: toml
