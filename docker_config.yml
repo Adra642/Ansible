@@ -1,23 +1,25 @@
 - hosts: localhost
   connection: local
-  become: yes
-
+  become: true
+  
   vars_prompt:
     - name: target_user
       prompt: "Add user name for docker group"
-      private: no
+      private: false
       
   tasks:
     - name: Install dnf-plugins-core
-      dnf:
+      ansible.builtin.dnf5:
         name: dnf-plugins-core
         state: present
 
     - name: Add Docker repository
-      command: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+      ansible.builtin.command:
+        cmd: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        creates: /etc/yum.repos.d/docker-ce.repo
 
     - name: Install Docker packages
-      dnf:
+      ansible.builtin.dnf5:
         name:
           - docker-ce
           - docker-ce-cli
@@ -27,29 +29,12 @@
         state: present
 
     - name: Create Docker group
-      group:
+      ansible.builtin.group:
         name: docker
         state: present
-        
+
     - name: Add user to Docker group
       ansible.builtin.user:
         name: "{{ target_user }}"
         groups: docker
-        append: yes
-
-    - name: Start Docker service
-      systemd:
-        name: docker
-        state: started
-        
-    - name: Pull multiple Docker images
-      community.docker.docker_image:
-        name: "{{ item }}"
-        state: present
-        source: pull 
-      loop:
-        - postgres
-        - mysql
-        - sonarqube
-        - alpine
-      become: false
+        append: true
