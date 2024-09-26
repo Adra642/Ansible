@@ -39,9 +39,11 @@
           - maven
         state: present
 
-    - name: Install Multimedia plugins
+    - name: Install Group packages
       ansible.builtin.dnf5:
-        name: "@Multimedia"
+        name: 
+          - "@Multimedia"
+          - "@Development Tools"
         state: present
 
     - name: Remove unwanted GNOME software
