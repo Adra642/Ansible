@@ -2,16 +2,35 @@
   connection: local
  
   tasks:
+    - name: Check current theme
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.desktop.interface color-scheme
+      register: current_theme
+
     - name: Change theme to dark
       ansible.builtin.command:
         cmd: gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+      when: current_theme.stdout != "'prefer-dark'"
+
+    - name: Check current keyboard layout
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.desktop.input-sources sources
+      register: current_layout
 
     - name: Set keyboard layout to Latin American
       ansible.builtin.command:
         cmd: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
+      when: current_layout.stdout != "[('xkb', 'latam')]"
+
+    - name: Check current WezTerm keybinding
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings
+      register: current_wezterm_binding
 
     - name: Create keyboard shortcut to open WezTerm
-      ansible.builtin.command: gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+      when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 
     - name: Set WezTerm keybind
       ansible.builtin.command:
@@ -20,7 +39,14 @@
         - { action: "name", value: "'WezTerm'" }
         - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
         - { action: "binding", value: "'<Control><Alt>t'" }
+      when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+
+    - name: Check current show desktop keybinding
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.desktop.wm.keybindings show-desktop
+      register: current_show_desktop_binding
 
     - name: Create keyboard shortcut to show desktop
       ansible.builtin.command:
         cmd: gsettings set org.gnome.desktop.wm.keybindings show-desktop "['<Super>d']"
+      when: current_show_desktop_binding.stdout != "['<Super>d']"

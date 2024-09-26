@@ -3,54 +3,81 @@
 
   vars:
     font : { name: "IosevkaTerm", url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip" }
-    font_dir: "{{ ansible_env.HOME }}/.local/share/fonts"
+    cursor : { name: "Vimix-cursors", url: "https://github.com/vinceliuice/Vimix-cursors.git" }
+    theme : { name: "Orchis-theme", url: "https://github.com/vinceliuice/Orchis-theme.git" }
+    share_dir: "{{ ansible_env.HOME }}/.local/share"
     download_dir: "{{ ansible_env.HOME }}/Downloads"
-    repos:
-      - { name: "Vimix-cursors", url: "https://github.com/vinceliuice/Vimix-cursors.git" }
-      - { name: "Orchis-theme", url: "https://github.com/vinceliuice/Orchis-theme.git" }
 
   tasks:
-    - name: Create directories for fonts
-      ansible.builtin.file:
-        path: "{{ font_dir }}/{{ font.name }}"
-        state: directory
-        mode: "0755"
+    - name: Check if IosevkaTerm is installed
+      ansible.builtin.stat:
+        path: "{{ share_dir }}/fonts/{{ font.name }}"
+      register: font_installed
 
-    - name: Download font zip file
-      ansible.builtin.get_url:
-        url: "{{ font.url }}"
-        dest: "{{ download_dir }}/{{ font.name }}.zip"
+    - name: Install font if not installed
+      block:
+        - name: Create directories for fonts
+          ansible.builtin.file:
+            path: "{{ share_dir }}/fonts/{{ font.name }}"
+            state: directory
+            mode: "0755"
 
-    - name: Unzip font file
-      ansible.builtin.unarchive:
-        src: "{{ download_dir }}/{{ font.name }}.zip"
-        dest: "{{ font_dir }}/{{ font.name }}"
-      notify: Update font cache
+        - name: Download font zip file
+          ansible.builtin.get_url:
+            url: "{{ font.url }}"
+            dest: "{{ download_dir }}/{{ font.name }}.zip"
 
-    - name: Clone theme and cursor repositories
-      ansible.builtin.git:
-        repo: "{{ item.url }}"
-        dest: "{{ download_dir }}/{{ item.name }}"
-      loop: "{{ repos }}"
+        - name: Unzip font file
+          ansible.builtin.unarchive:
+            src: "{{ download_dir }}/{{ font.name }}.zip"
+            dest: "{{ share_dir }}/fonts/{{ font.name }}"
+          notify: Update font cache
+      when: not font_installed.stat.exists
 
-    - name: Run installation script for Vimix-cursors
-      ansible.builtin.shell: ./install.sh
-      args:
-        chdir: "{{ download_dir }}/Vimix-cursors"
+    - name: Check if Vimix-cursors is installed
+      ansible.builtin.stat:
+        path: "{{ share_dir }}/icons/{{ cursor.name }}"
+      register: cursor_installed
 
-    - name: Run installation script for Orchis-theme
-      ansible.builtin.shell: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
-      args:
-        chdir: "{{ download_dir }}/Orchis-theme"
+    - name: Install Vimix-cursors if not installed
+      block:
+        - name: Clone Vimix-cursors repository
+          ansible.builtin.git:
+            repo: "{{ cursor.url }}"
+            dest: "{{ download_dir }}/{{ cursor.name }}"
+
+        - name: Run installation script for Vimix-cursors
+          ansible.builtin.shell: ./install.sh
+          args:
+            chdir: "{{ download_dir }}/{{ cursor.name }}"
+      when: not cursor_installed.stat.exists
+
+    - name: Check if Orchis-theme is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.themes/Orchis-Grey-Dark-Nord"
+      register: theme_installed
+
+    - name: Install Orchis-theme if not installed
+      block:
+      - name: Clone theme and cursor repositories
+        ansible.builtin.git:
+          repo: "{{ theme.url }}"
+          dest: "{{ download_dir }}/{{ theme.name }}"
+
+      - name: Run installation script for Orchis-theme
+        ansible.builtin.shell: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
+        args:
+          chdir: "{{ download_dir }}/{{ theme.name }}"
+      when: not theme_installed.stat.exists
 
     - name: Clean up specific files and directories in Downloads
       ansible.builtin.file:
         path: "{{ download_dir }}/{{ item }}"
         state: absent
       loop:
-        - Vimix-cursors
-        - Orchis-theme
-        - IosevkaTerm.zip
+        - "{{ theme.name }}"
+        - "{{ cursor.name }}"
+        - "{{ font.name }}"
 
   handlers:
     - name: Update font cache
