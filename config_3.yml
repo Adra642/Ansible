@@ -1,60 +1,77 @@
 - hosts: localhost
   connection: local
-  become: yes
 
   tasks:
-    - name: Import Microsoft GPG key
-      rpm_key:
-        state: present
-        key: https://packages.microsoft.com/keys/microsoft.asc
+    - name: Root tasks
+      block:
+        - name: Import Microsoft GPG key
+          ansible.builtin.rpm_key:
+            state: present
+            key: https://packages.microsoft.com/keys/microsoft.asc
 
-    - name: Add Visual Studio Code repository
-      copy:
-        dest: /etc/yum.repos.d/vscode.repo
-        content: |
-          [code]
-          name=Visual Studio Code
-          baseurl=https://packages.microsoft.com/yumrepos/vscode
-          enabled=1
-          gpgcheck=1
-          gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+        - name: Add Visual Studio Code repository
+          ansible.builtin.copy:
+            dest: /etc/yum.repos.d/vscode.repo
+            content: |
+              [code]
+              name=Visual Studio Code
+              baseurl=https://packages.microsoft.com/yumrepos/vscode
+              enabled=1
+              gpgcheck=1
+              gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 
-    - name: Update DNF cache
-      command: dnf check-update
+        - name: Update DNF cache
+          ansible.builtin.dnf5:
+            update_cache: true
 
-    - name: Install Visual Studio Code
-      dnf:
-        name: code
-        state: present
+        - name: Install Visual Studio Code
+          ansible.builtin.dnf5:
+            name: code
+            state: present
 
-    - name: Enable Zellij COPR repository
-      command: dnf copr enable varlad/zellij -y
-      register: enable_copr
-      changed_when: enable_copr.rc == 0
+        - name: Enable Zellij COPR repository
+          community.general.copr:
+            host: copr.fedorainfracloud.org
+            state: enabled
+            name: varlad/zellij
+          register: enable_copr
+          changed_when: enable_copr.changed
 
-    - name: Install Zellij
-      dnf:
-        name: zellij
-        state: present
-      register: install_zellij
-      when: enable_copr is succeeded
+        - name: Install Zellij
+          ansible.builtin.dnf5:
+            name: zellij
+            state: present
+          when: enable_copr.changed
+      become: true
 
-    - name: Add Zellij auto-start to .zshrc
-      lineinfile:
-        path: ~/.zshrc
-        line: 'eval "$(zellij setup --generate-auto-start zsh)"'
-        create: yes
+    - name: No root tasks
+      block:
+        - name: Add Zellij auto-start and fzf keybinds to .zshrc
+          ansible.builtin.lineinfile:
+            path: "{{ ansible_env.HOME }}/.zshrc"
+            line: "{{ item }}"
+            create: true
+            state: present
+          loop:
+            - 'eval "$(zellij setup --generate-auto-start zsh)"'
+            - 'source <(fzf --zsh)'
+
+        - name: Check if Papirus Folders are installed
+          ansible.builtin.stat:
+            path: /usr/bin/papirus-folders
+          register: papirus_folders_installed
+
+        - name: Download Papirus Folders install script
+          ansible.builtin.get_url:
+            url: https://git.io/papirus-folders-install
+            dest: /tmp/papirus-folders-install.sh
+            mode: '0755'
+          when: not papirus_folders_installed.stat.exists
+
+        - name: Install Papirus Folders if not installed
+          ansible.builtin.command: /tmp/papirus-folders-install.sh
+          when: not papirus_folders_installed.stat.exists
+
+        - name: Set Papirus Folders theme to bluegrey
+          ansible.builtin.command: papirus-folders -C bluegrey --theme Papirus
       become: false
-
-    - name: Agregar fzf al archivo .zshrc
-      lineinfile:
-        path: ~/.zshrc
-        line: 'source <(fzf --zsh)'
-        create: yes
-      become: false
-
-    - name: Install Papirus Folders
-      shell: wget -qO- https://git.io/papirus-folders-install | sh
-
-    - name: Change Papirus Folder Color
-      shell: papirus-folders -C bluegrey --theme Papirus
