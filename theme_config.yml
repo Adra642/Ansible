@@ -59,7 +59,7 @@
 
     - name: Install Orchis-theme if not installed
       block:
-      - name: Clone theme and cursor repositories
+      - name: Clone Orchis-theme repository
         ansible.builtin.git:
           repo: "{{ theme.url }}"
           dest: "{{ download_dir }}/{{ theme.name }}"
@@ -77,7 +77,7 @@
       loop:
         - "{{ theme.name }}"
         - "{{ cursor.name }}"
-        - "{{ font.name }}"
+        - "{{ font.name }}.zip"
 
   handlers:
     - name: Update font cache
