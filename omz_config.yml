@@ -1,0 +1,47 @@
+- hosts: localhost
+
+  vars:
+    projects_dir: ~/Documents/Projects
+    dotfiles_repo: "{{ ansible_env.HOME }}/dotfiles"
+    config: ~/.config
+
+  tasks:
+    - name: Install Oh-My-Zsh
+      ansible.builtin.shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended"
+      args:
+        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+
+    - name: Crear enlace simbólico para adra.zsh-theme en temas de Oh My Zsh
+      ansible.builtin.file:
+        src: "{{ dotfiles_repo }}/zsh/adra.zsh-theme"
+        dest: "{{ lookup('env', 'ZSH') | default('~/.oh-my-zsh') }}/themes/adra.zsh-theme"
+        state: link
+
+    - name: Clonar plugins de zsh
+      ansible.builtin.git:
+        repo: "https://github.com/zsh-users/{{ item }}.git"
+        dest: "{{ lookup('env', 'ZSH') | default('~/.oh-my-zsh') }}/custom/plugins/{{ item }}"
+        update: true
+      loop:
+        - zsh-autosuggestions
+        - zsh-syntax-highlighting
+
+    - name: Add zsh plugins to .zshrc
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        regexp: '^plugins=\((.*)\)$'
+        line: 'plugins=(\1 {{ item }})'
+        backrefs: yes
+        create: true
+      loop:
+        - zsh-autosuggestions
+        - zsh-syntax-highlighting
+        - docker
+      when: item not in lookup('file', ansible_env.HOME + '/.zshrc')
+
+    - name: Change zsh theme
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        regexp: '^ZSH_THEME=".*"$'
+        line: 'ZSH_THEME="adra"'
+        create: true
