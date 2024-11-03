@@ -1,19 +1,13 @@
 - hosts: localhost
 
   vars:
-    projects_dir: ~/Documents/Projects
-    dotfiles_repo: "{{ projects_dir }}/dotfiles"
+    dotfiles_repo: "{{ ansible_env.HOME }}/.dotfiles"
     config: ~/.config
 
   tasks:
-    - name: Crear directorio para proyectos
-      ansible.builtin.file:
-        path: "{{ projects_dir }}"
-        state: directory
-
     - name: Clonar el repositorio de dotfiles
       ansible.builtin.git:
-        repo: git@github.com:Adra642/dotfiles.git
+        repo: git@github.com:Adra642/.dotfiles.git
         dest: "{{ dotfiles_repo }}"
         update: true
 
@@ -54,35 +48,6 @@
         dest: "{{ config }}/zellij/plugins/zjstatus.wasm"
         mode: '0644'
         
-    - name: Crear enlace simbólico para adra.zsh-theme en temas de Oh My Zsh
-      ansible.builtin.file:
-        src: "{{ dotfiles_repo }}/zsh/adra.zsh-theme"
-        dest: ~/.oh-my-zsh/custom/themes/adra.zsh-theme
-        state: link
-   
-    - name: Clonar plugins de zsh
-      ansible.builtin.git:
-        repo: "https://github.com/zsh-users/{{ item }}.git"
-        dest: "{{ lookup('env', 'ZSH') | default('~/.oh-my-zsh') }}/custom/plugins/{{ item }}"
-        update: true
-      loop:
-        - zsh-autosuggestions
-        - zsh-syntax-highlighting
-
-    - name: Add zsh plugins to .zshrc
-      ansible.builtin.lineinfile:
-        path: "{{ ansible_env.HOME }}/.zshrc"
-        regexp: '^plugins=\((.*)\)$'
-        line: 'plugins=(\1 {{ item }})'
-        backrefs: yes
-        create: true
-      loop:
-        - zsh-autosuggestions
-        - zsh-syntax-highlighting
-        - docker
-        - sudo
-      when: item not in lookup('file', ansible_env.HOME + '/.zshrc')
-
     - name: Instalar toml usando pip
       ansible.builtin.pip:
         name: toml
