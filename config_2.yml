@@ -19,7 +19,7 @@
         state: present
 
     - name: Install DNF packages
-      ansible.builtin.dnf5:
+      ansible.builtin.dnf:
         name:
           - gnome-tweaks
           - vlc
@@ -37,19 +37,20 @@
           - fzf
           - eza
           - maven
+          - sassc
         state: present
 
     - name: Install Group packages
-      ansible.builtin.dnf5:
+      ansible.builtin.dnf:
         name: 
           - "@Multimedia"
           - "@Development Tools"
         state: present
 
     - name: Remove unwanted GNOME software
-      ansible.builtin.dnf5:
+      ansible.builtin.dnf:
         name:
-          - firefox
+        #  - firefox // Wait for dnf5 compatibility
           - gnome-tour
           - totem
           - mediawriter

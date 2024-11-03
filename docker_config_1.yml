@@ -9,17 +9,17 @@
       
   tasks:
     - name: Install dnf-plugins-core
-      ansible.builtin.dnf5:
+      ansible.builtin.dnf:
         name: dnf-plugins-core
         state: present
-
-    - name: Add Docker repository
-      ansible.builtin.command:
-        cmd: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-        creates: /etc/yum.repos.d/docker-ce.repo
+    # Wait for fedora 41  compatibility
+    # - name: Add Docker repository
+    #   ansible.builtin.command:
+    #     cmd: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+    #     creates: /etc/yum.repos.d/docker-ce.repo
 
     - name: Install Docker packages
-      ansible.builtin.dnf5:
+      ansible.builtin.dnf:
         name:
           - docker-ce
           - docker-ce-cli

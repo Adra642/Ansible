@@ -20,12 +20,9 @@
               gpgcheck=1
               gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 
-        - name: Update DNF cache
-          ansible.builtin.dnf5:
+        - name: Update DNF cache and install Visual Studio Code
+          ansible.builtin.dnf:
             update_cache: true
-
-        - name: Install Visual Studio Code
-          ansible.builtin.dnf5:
             name: code
             state: present
 
@@ -38,7 +35,7 @@
           changed_when: enable_copr.changed
 
         - name: Install Zellij
-          ansible.builtin.dnf5:
+          ansible.builtin.dnf:
             name: zellij
             state: present
           when: enable_copr.changed
@@ -55,6 +52,7 @@
           loop:
             - 'eval "$(zellij setup --generate-auto-start zsh)"'
             - 'source <(fzf --zsh)'
+            - "alias ls='eza --icons'"
 
         - name: Check if Papirus Folders are installed
           ansible.builtin.stat:
