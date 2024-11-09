@@ -31,12 +31,11 @@
     - name: Install basic programs
       ansible.builtin.dnf:
         name: 
-          - git
           - zsh
         state: present
 
     - name: Update all packages
-      ansible.builtin.dnf5:
+      ansible.builtin.dnf:
         name: "*"
         state: latest
 
