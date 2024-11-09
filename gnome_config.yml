@@ -32,12 +32,21 @@
         cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
       when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 
-    - name: Set WezTerm keybind
+    # - name: Set WezTerm keybind
+    #   ansible.builtin.command:
+    #     cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ {{ item.action }} {{ item.value }}
+    #   loop:
+    #     - { action: "name", value: "'WezTerm'" }
+    #     - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
+    #     - { action: "binding", value: "'<Control><Alt>t'" }
+    #   when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+
+    - name: Set Alacritty keybind
       ansible.builtin.command:
         cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ {{ item.action }} {{ item.value }}
       loop:
-        - { action: "name", value: "'WezTerm'" }
-        - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
+        - { action: "name", value: "'Alacritty'" }
+        - { action: "command", value: "'alacritty'" }
         - { action: "binding", value: "'<Control><Alt>t'" }
       when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 

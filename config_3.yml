@@ -43,17 +43,6 @@
 
     - name: No root tasks
       block:
-        - name: Add Zellij auto-start and fzf keybinds to .zshrc
-          ansible.builtin.lineinfile:
-            path: "{{ ansible_env.HOME }}/.zshrc"
-            line: "{{ item }}"
-            create: true
-            state: present
-          loop:
-            - 'eval "$(zellij setup --generate-auto-start zsh)"'
-            - 'source <(fzf --zsh)'
-            - "alias ls='eza --icons'"
-
         - name: Check if Papirus Folders are installed
           ansible.builtin.stat:
             path: /usr/bin/papirus-folders
@@ -73,3 +62,6 @@
         - name: Set Papirus Folders theme to bluegrey
           ansible.builtin.command: papirus-folders -C bluegrey --theme Papirus
       become: false
+
+#curl -fsSL https://bun.sh/install | bash
+       # sudo flatpak override --filesystem=xdg-config/gtk-3.0 && sudo flatpak override --filesystem=xdg-config/gtk-4.
