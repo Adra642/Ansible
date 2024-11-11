@@ -21,7 +21,7 @@
         - wezterm
         - zellij/layouts
         - zellij/plugins
-        - zellij/theme
+        - zellij/themes
         - zsh
 
     - name: Crear enlace simbólico de .zshenv
@@ -42,7 +42,7 @@
         - alacritty/current_scheme.toml
         - zellij/config.kdl
         - zellij/layouts/work.kdl
-        - zellij/theme/scheme.kdl
+        - zellij/themes/scheme.kdl
         - color_selector/color_schemes.toml
         - color_selector/alacritty_color.py
         - color_selector/color_scheme_selector.py
@@ -50,11 +50,14 @@
         - color_selector/zellij_color.py
         - zsh/.zshrc
 
-    - name: Descargar zjstatus.wasm en plugins
+    - name: Descargar plugins wasm en zellij
       ansible.builtin.get_url:
-        url: https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm
-        dest: "{{ config }}/zellij/plugins/zjstatus.wasm"
+        url: "{{ item.url }}"
+        dest: "{{ config }}/zellij/plugins/{{ item.dest }}"
         mode: '0644'
+      loop:
+        - { url: 'https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm', dest: 'zjstatus.wasm' }
+        - { url: 'https://github.com/karimould/zellij-forgot/releases/latest/download/zellij_forgot.wasm', dest: 'zellij_forgot.wasm' }
         
     - name: Instalar toml usando pip
       ansible.builtin.pip:
