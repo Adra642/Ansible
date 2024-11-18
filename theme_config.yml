@@ -2,80 +2,121 @@
   connection: local
 
   vars:
-    font : { name: "IosevkaTerm", url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip" }
-    cursor : { name: "Vimix-cursors", url: "https://github.com/vinceliuice/Vimix-cursors.git" }
-    theme : { name: "Orchis-theme", url: "https://github.com/vinceliuice/Orchis-theme.git" }
+    font:
+      {
+        name: "IosevkaTerm",
+        url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip",
+      }
+    cursor:
+      {
+        name: "Vimix-cursors",
+        url: "https://github.com/vinceliuice/Vimix-cursors.git",
+      }
+    theme:
+      {
+        name: "Orchis-theme",
+        url: "https://github.com/vinceliuice/Orchis-theme.git",
+      }
     share_dir: "{{ ansible_env.HOME }}/.local/share"
     download_dir: "{{ ansible_env.HOME }}/Downloads"
 
   tasks:
-    - name: Check if IosevkaTerm is installed
-      ansible.builtin.stat:
-        path: "{{ share_dir }}/fonts/{{ font.name }}"
-      register: font_installed
-
-    - name: Install font if not installed
+    - name: Font Installation
       block:
-        - name: Create directories for fonts
-          ansible.builtin.file:
+        - name: Check if IosevkaTerm is installed
+          ansible.builtin.stat:
             path: "{{ share_dir }}/fonts/{{ font.name }}"
-            state: directory
-            mode: "0755"
+          register: font_installed
 
-        - name: Download font zip file
-          ansible.builtin.get_url:
-            url: "{{ font.url }}"
-            dest: "{{ download_dir }}/{{ font.name }}.zip"
+        - name: Install font if not installed
+          block:
+            - name: Create directories for fonts
+              ansible.builtin.file:
+                path: "{{ share_dir }}/fonts/{{ font.name }}"
+                state: directory
+                mode: "0755"
 
-        - name: Unzip font file
-          ansible.builtin.unarchive:
-            src: "{{ download_dir }}/{{ font.name }}.zip"
-            dest: "{{ share_dir }}/fonts/{{ font.name }}"
-          notify: Update font cache
-      when: not font_installed.stat.exists
+            - name: Download font zip file
+              ansible.builtin.get_url:
+                url: "{{ font.url }}"
+                dest: "{{ download_dir }}/{{ font.name }}.zip"
 
-    - name: Check if Vimix-cursors is installed
-      ansible.builtin.stat:
-        path: "{{ share_dir }}/icons/{{ cursor.name }}"
-      register: cursor_installed
+            - name: Unzip font file
+              ansible.builtin.unarchive:
+                src: "{{ download_dir }}/{{ font.name }}.zip"
+                dest: "{{ share_dir }}/fonts/{{ font.name }}"
+              notify: Update font cache
+          when: not font_installed.stat.exists
 
-    - name: Install Vimix-cursors if not installed
+    - name: Cursor Theme Installation
       block:
-        - name: Clone Vimix-cursors repository
-          ansible.builtin.git:
-            repo: "{{ cursor.url }}"
-            dest: "{{ download_dir }}/{{ cursor.name }}"
+        - name: Check if Vimix-cursors is installed
+          ansible.builtin.stat:
+            path: "{{ share_dir }}/icons/{{ cursor.name }}"
+          register: cursor_theme_installed
 
-        - name: Run installation script for Vimix-cursors
-          ansible.builtin.shell: ./install.sh
-          args:
-            chdir: "{{ download_dir }}/{{ cursor.name }}"
-      when: not cursor_installed.stat.exists
+        - name: Install Vimix-cursors if not installed
+          block:
+            - name: Clone Vimix-cursors repository
+              ansible.builtin.git:
+                repo: "{{ cursor.url }}"
+                dest: "{{ download_dir }}/{{ cursor.name }}"
 
-    - name: Check if Orchis-theme is installed
-      ansible.builtin.stat:
-        path: "{{ ansible_env.HOME }}/.themes/Orchis-Grey-Dark-Nord"
-      register: theme_installed
+            - name: Run installation script for Vimix-cursors
+              ansible.builtin.shell: ./install.sh
+              args:
+                chdir: "{{ download_dir }}/{{ cursor.name }}"
+          when: not cursor_theme_installed.stat.exists
 
-    - name: Install Orchis-theme if not installed
+    - name: Gnome Theme Installation
       block:
-      - name: Clone Orchis-theme repository
-        ansible.builtin.git:
-          repo: "{{ theme.url }}"
-          dest: "{{ download_dir }}/{{ theme.name }}"
+        - name: Check if Orchis-theme is installed
+          ansible.builtin.stat:
+            path: "{{ ansible_env.HOME }}/.themes/Orchis-Grey-Dark-Nord"
+          register: gnome_theme_installed
 
-      - name: Run installation script for Orchis-theme
-        ansible.builtin.shell: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
-        args:
-          chdir: "{{ download_dir }}/{{ theme.name }}"
-      when: not theme_installed.stat.exists
+        - name: Install Orchis-theme if not installed
+          block:
+            - name: Clone Orchis-theme repository
+              ansible.builtin.git:
+                repo: "{{ theme.url }}"
+                dest: "{{ download_dir }}/{{ theme.name }}"
+
+            - name: Run installation script for Orchis-theme
+              ansible.builtin.shell: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
+              args:
+                chdir: "{{ download_dir }}/{{ theme.name }}"
+          when: not gnome_theme_installed.stat.exists
+      # sudo flatpak override --filesystem=xdg-config/gtk-3.0 && sudo flatpak override --filesystem=xdg-config/gtk-4.0
+
+    - name: Icons Theme Configuration
+      block:
+        - name: Check if Papirus Folders are installed
+          ansible.builtin.stat:
+            path: /usr/bin/papirus-folders
+          register: papirus_folders_installed
+
+        - name: Set Papirus Folders Color
+          block:
+          - name: Download Papirus Folders install script
+            ansible.builtin.get_url:
+              url: https://git.io/papirus-folders-install
+              dest: /tmp/papirus-folders-install.sh
+              mode: '0755'
+            when: not papirus_folders_installed.stat.exists
+
+          - name: Install Papirus Folders
+            ansible.builtin.command: /tmp/papirus-folders-install.sh
+            when: not papirus_folders_installed.stat.exists
+
+          - name: Set Papirus Folders theme to bluegrey
+            ansible.builtin.command: papirus-folders -C bluegrey --theme Papirus
 
     - name: Clean up specific files and directories in Downloads
       ansible.builtin.file:
         path: "{{ download_dir }}/{{ item }}"
         state: absent
       loop:
-        - "{{ theme.name }}"
         - "{{ cursor.name }}"
         - "{{ font.name }}.zip"
 

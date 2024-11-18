@@ -1,67 +1,62 @@
 - hosts: localhost
   connection: local
+  become: true
 
   tasks:
-    - name: Root tasks
-      block:
-        - name: Import Microsoft GPG key
-          ansible.builtin.rpm_key:
-            state: present
-            key: https://packages.microsoft.com/keys/microsoft.asc
+    - name: Import Microsoft GPG key
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://packages.microsoft.com/keys/microsoft.asc
 
-        - name: Add Visual Studio Code repository
-          ansible.builtin.copy:
-            dest: /etc/yum.repos.d/vscode.repo
-            content: |
-              [code]
-              name=Visual Studio Code
-              baseurl=https://packages.microsoft.com/yumrepos/vscode
-              enabled=1
-              gpgcheck=1
-              gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+    - name: Add Visual Studio Code repository
+      ansible.builtin.copy:
+        dest: /etc/yum.repos.d/vscode.repo
+        content: |
+          [code]
+          name=Visual Studio Code
+          baseurl=https://packages.microsoft.com/yumrepos/vscode
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 
-        - name: Update DNF cache and install Visual Studio Code
-          ansible.builtin.dnf:
-            update_cache: true
-            name: code
-            state: present
+    - name: Update DNF cache and install Visual Studio Code
+      ansible.builtin.dnf:
+        update_cache: true
+        name: code
+        state: present
 
-        - name: Enable Zellij COPR repository
-          community.general.copr:
-            host: copr.fedorainfracloud.org
-            state: enabled
-            name: varlad/zellij
-          register: enable_copr
-          changed_when: enable_copr.changed
+    - name: Enable Zellij COPR repository
+      community.general.copr:
+        host: copr.fedorainfracloud.org
+        state: enabled
+        name: varlad/zellij
+      register: enable_copr
+      changed_when: enable_copr.changed
 
-        - name: Install Zellij
-          ansible.builtin.dnf:
-            name: zellij
-            state: present
-          when: enable_copr.changed
-      become: true
+    - name: Install Zellij
+      ansible.builtin.dnf:
+        name: zellij
+        state: present
+      when: enable_copr.changed
 
-    - name: No root tasks
-      block:
-        - name: Check if Papirus Folders are installed
-          ansible.builtin.stat:
-            path: /usr/bin/papirus-folders
-          register: papirus_folders_installed
-
-        - name: Download Papirus Folders install script
-          ansible.builtin.get_url:
-            url: https://git.io/papirus-folders-install
-            dest: /tmp/papirus-folders-install.sh
-            mode: '0755'
-          when: not papirus_folders_installed.stat.exists
-
-        - name: Install Papirus Folders if not installed
-          ansible.builtin.command: /tmp/papirus-folders-install.sh
-          when: not papirus_folders_installed.stat.exists
-
-        - name: Set Papirus Folders theme to bluegrey
-          ansible.builtin.command: papirus-folders -C bluegrey --theme Papirus
+    - name: Check if Bun is installed
+      ansible.builtin.command: which bun
+      register: bun_installed
+      ignore_errors: true
       become: false
 
-#curl -fsSL https://bun.sh/install | bash
-       # sudo flatpak override --filesystem=xdg-config/gtk-3.0 && sudo flatpak override --filesystem=xdg-config/gtk-4.
+    - name: Install Bun using curl
+      ansible.builtin.shell: curl -fsSL https://bun.sh/install | bash
+      when: bun_installed.rc != 0
+      become: false
+
+    - name: Check if Angular CLI is installed
+      ansible.builtin.command: which ng
+      register: angular_cli_installed
+      ignore_errors: true
+      become: false
+
+    - name: Install Angular CLI globally using Bun
+      ansible.builtin.command: bun i -g @angular/cli
+      when: angular_cli_installed.rc != 0
+      become: false
