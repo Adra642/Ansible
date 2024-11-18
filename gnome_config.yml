@@ -22,31 +22,24 @@
         cmd: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
       when: current_layout.stdout != "[('xkb', 'latam')]"
 
-    - name: Check current WezTerm keybinding
+    - name: Check current Terminal keybinding
       ansible.builtin.command:
         cmd: gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings
       register: current_wezterm_binding
 
-    - name: Create keyboard shortcut to open WezTerm
+    - name: Create keyboard shortcut to open Terminal
       ansible.builtin.command:
         cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
       when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 
-    # - name: Set WezTerm keybind
-    #   ansible.builtin.command:
-    #     cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ {{ item.action }} {{ item.value }}
-    #   loop:
-    #     - { action: "name", value: "'WezTerm'" }
-    #     - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
-    #     - { action: "binding", value: "'<Control><Alt>t'" }
-    #   when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
-
-    - name: Set Alacritty keybind
+    - name: Set Terminal keybind
       ansible.builtin.command:
         cmd: gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ {{ item.action }} {{ item.value }}
       loop:
         - { action: "name", value: "'Alacritty'" }
         - { action: "command", value: "'alacritty'" }
+        # - { action: "name", value: "'WezTerm'" }
+        # - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
         - { action: "binding", value: "'<Control><Alt>t'" }
       when: current_wezterm_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
 
