@@ -7,13 +7,10 @@
       ansible.builtin.flatpak:
         name:
           - com.brave.Browser
-          - com.discordapp.Discord
           - com.spotify.Client
           - com.jetbrains.IntelliJ-IDEA-Ultimate
-        # - com.getpostman.Postman
           - org.wezfurlong.wezterm
           - net.kuribo64.melonDS
-          - us.zoom.Zoom
           - com.obsproject.Studio
           - com.mattjakeman.ExtensionManager
           - es.danirod.Cartero
@@ -40,6 +37,8 @@
           - eza
           - maven
           - sassc
+          - libvirt
+          - bleachbit
         state: present
 
     - name: Install Group packages
@@ -52,12 +51,12 @@
     - name: Remove unwanted GNOME software
       ansible.builtin.dnf:
         name:
-        #  - firefox // Wait for dnf5 compatibility
           - gnome-tour
           - totem
           - mediawriter
           - yelp
           - gnome-contacts
           - rhythmbox
-          #- gnome-boxes
+        #  - firefox // Wait for dnf5 compatibility
+        #  - gnome-boxes
         state: absent

@@ -23,6 +23,7 @@
         - zellij/plugins
         - zellij/themes
         - zsh
+        - fastfetch
 
     - name: Crear enlace simbólico de .zshenv
       ansible.builtin.file:
@@ -49,6 +50,7 @@
         - color_selector/wezterm_color.py
         - color_selector/zellij_color.py
         - zsh/.zshrc
+        - fastfetch/config.jsonc
 
     - name: Descargar plugins wasm en zellij
       ansible.builtin.get_url:
