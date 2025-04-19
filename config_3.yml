@@ -30,33 +30,47 @@
         host: copr.fedorainfracloud.org
         state: enabled
         name: varlad/zellij
-      register: enable_copr
-      changed_when: enable_copr.changed
+      register: enable_zellij_copr
+      changed_when: enable_zellij_copr.changed
 
     - name: Install Zellij
       ansible.builtin.dnf:
         name: zellij
         state: present
-      when: enable_copr.changed
+      when: enable_zellij_copr.changed
 
-    - name: Check if Bun is installed
-      ansible.builtin.command: which bun
-      register: bun_installed
-      ignore_errors: true
-      become: false
+    - name: Enable Eza COPR repository
+      community.general.copr:
+        host: copr.fedorainfracloud.org
+        state: enabled
+        name: alternateved/eza
+      register: enable_eza_copr
+      changed_when: enable_eza_copr.changed
 
-    - name: Install Bun using curl
-      ansible.builtin.shell: curl -fsSL https://bun.sh/install | bash
-      when: bun_installed.rc != 0
-      become: false
+    - name: Install Eza
+      ansible.builtin.dnf:
+        name: eza
+        state: present
+      when: enable_eza_copr.changed
+      
+    # - name: Check if Bun is installed
+    #   ansible.builtin.command: which bun
+    #   register: bun_installed
+    #   ignore_errors: true
+    #   become: false
 
-    - name: Check if Angular CLI is installed
-      ansible.builtin.command: which ng
-      register: angular_cli_installed
-      ignore_errors: true
-      become: false
+    # - name: Install Bun using curl
+    #   ansible.builtin.shell: curl -fsSL https://bun.sh/install | bash
+    #   when: bun_installed.rc != 0
+    #   become: false
 
-    - name: Install Angular CLI globally using Bun
-      ansible.builtin.command: bun i -g @angular/cli
-      when: angular_cli_installed.rc != 0
-      become: false
+    # - name: Check if Angular CLI is installed
+    #   ansible.builtin.command: which ng
+    #   register: angular_cli_installed
+    #   ignore_errors: true
+    #   become: false
+
+    # - name: Install Angular CLI globally using Bun
+    #   ansible.builtin.command: bun i -g @angular/cli
+    #   when: angular_cli_installed.rc != 0
+    #   become: false
