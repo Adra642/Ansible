@@ -12,11 +12,11 @@
       ansible.builtin.dnf:
         name: dnf-plugins-core
         state: present
-    # Wait for fedora 41  compatibility
-    # - name: Add Docker repository
-    #   ansible.builtin.command:
-    #     cmd: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-    #     creates: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Add Docker repository
+      ansible.builtin.command:
+        cmd: dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        creates: /etc/yum.repos.d/docker-ce.repo
 
     - name: Install Docker packages
       ansible.builtin.dnf:
@@ -26,11 +26,6 @@
           - containerd.io
           - docker-buildx-plugin
           - docker-compose-plugin
-        state: present
-
-    - name: Create Docker group
-      ansible.builtin.group:
-        name: docker
         state: present
 
     - name: Add user to Docker group

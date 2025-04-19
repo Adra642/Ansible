@@ -18,9 +18,15 @@
         - alpine
       become: false
 
+    - name: Check if Docker image path exists
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/Music/Docker Image"
+      register: docker_image_path
+
     - name: Build Docker image from Dockerfile
       community.docker.docker_image_build:
         name: streamrip
         path: "{{ ansible_env.HOME }}/Music/Docker Image"
         dockerfile: Dockerfile
       become: false
+      when: docker_image_path.stat.exists
