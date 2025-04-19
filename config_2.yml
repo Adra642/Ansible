@@ -11,11 +11,12 @@
           - com.jetbrains.IntelliJ-IDEA-Ultimate
           - org.wezfurlong.wezterm
           - net.kuribo64.melonDS
-          - com.obsproject.Studio
           - com.mattjakeman.ExtensionManager
           - es.danirod.Cartero
           - com.google.AndroidStudio
           - com.valvesoftware.Steam
+          - com.jetbrains.DataGrip
+          - com.getpostman.Postman
         state: present
 
     - name: Install DNF packages
@@ -34,11 +35,11 @@
           - gparted
           - pip
           - fzf
-          - eza
           - maven
           - sassc
           - libvirt
           - bleachbit
+         # - obs
         state: present
 
     - name: Install Group packages
@@ -57,6 +58,8 @@
           - yelp
           - gnome-contacts
           - rhythmbox
-        #  - firefox // Wait for dnf5 compatibility
-        #  - gnome-boxes
+          - firefox 
+          - anaconda-webui
+          # - gnome-boxes
         state: absent
+        autoremove: true
