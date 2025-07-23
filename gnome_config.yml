@@ -17,10 +17,10 @@
         cmd: gsettings get org.gnome.desktop.input-sources sources
       register: current_layout
 
-    - name: Set keyboard layout to Latin American
+    - name: Set keyboard layouts
       ansible.builtin.command:
-        cmd: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
-      when: current_layout.stdout != "[('xkb', 'latam')]"
+        cmd: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam'), ('xkb', 'us+intl')]"
+      when: current_layout.stdout | trim != "[('xkb', 'latam'), ('xkb', 'us+intl')]"
 
     - name: Check current Terminal keybinding
       ansible.builtin.command:
