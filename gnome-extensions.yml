@@ -1,0 +1,22 @@
+- hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Instalar gnome-extensions-cli usando pip
+      ansible.builtin.pip:
+        name: gnome-extensions-cli
+        state: present
+
+    - name: Ensure GNOME extensions are installed
+      ansible.builtin.shell: gext i {{ item }}
+      loop:
+        - blur-my-shell@aunetx
+        - caffeine@patapon.info
+        - color-picker@tuberry
+        - dash-to-dock@micxgx.gmail.com
+        - just-perfection-desktop@just-perfection
+        - mediacontrols@cliffniff.github.com
+        - user-theme@gnome-shell-extensions.gcampax.github.com
+        - Vitals@CoreCoding.com
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/gnome-shell/extensions/{{ item }}"
