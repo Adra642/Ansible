@@ -5,7 +5,7 @@
     font:
       {
         name: "IosevkaTerm",
-        url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/IosevkaTerm.zip",
+        url: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IosevkaTerm.zip",
       }
     cursor:
       {
