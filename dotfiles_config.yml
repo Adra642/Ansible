@@ -2,7 +2,7 @@
 
   vars:
     dotfiles_repo: "{{ ansible_env.HOME }}/.dotfiles"
-    config: ~/.config
+    config: "{{ ansible_env.HOME }}/.config"
 
   tasks:
     - name: Clonar el repositorio de dotfiles
@@ -11,12 +11,19 @@
         dest: "{{ dotfiles_repo }}"
         update: true
 
+    - name: Hacer ejecutable wallpaper_selector.sh
+      ansible.builtin.file:
+        path: "{{ dotfiles_repo }}/wallpaper/wallpaper_selector.sh"
+        mode: '0755'
+        state: file
+
     - name: Crear directorios necesarios en config
       ansible.builtin.file:
         path: "{{ config }}/{{ item }}"
         state: directory
       loop:
         - alacritty
+        - autostart
         - color_selector
         - wezterm
         - zellij/layouts
@@ -37,20 +44,21 @@
         dest: "{{ config }}/{{ item }}"
         state: link
       loop:
-        - wezterm/wezterm.lua
-        - wezterm/color.lua
         - alacritty/alacritty.toml
         - alacritty/current_scheme.toml
-        - zellij/config.kdl
-        - zellij/layouts/work.kdl
-        - zellij/themes/scheme.kdl
-        - color_selector/color_schemes.toml
+        - autostart/wallpaper_selector.desktop
         - color_selector/alacritty_color.py
+        - color_selector/color_schemes.toml
         - color_selector/color_scheme_selector.py
         - color_selector/wezterm_color.py
         - color_selector/zellij_color.py
-        - zsh/.zshrc
         - fastfetch/config.jsonc
+        - wezterm/color.lua
+        - wezterm/wezterm.lua
+        - zellij/config.kdl
+        - zellij/layouts/work.kdl
+        - zellij/themes/scheme.kdl
+        - zsh/.zshrc
 
     - name: Descargar plugins wasm en zellij
       ansible.builtin.get_url:
