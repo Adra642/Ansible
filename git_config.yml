@@ -28,7 +28,7 @@
 
     - name: Generate an OpenSSH keypair using ed25519
       community.crypto.openssh_keypair:
-        path: "~/.ssh/id_ed25519_github"
+        path: "{{ ansible_env.HOME }}/.ssh/id_ed25519_github"
         comment: "{{ user_email }}"
         type: ed25519
         mode: '0600'

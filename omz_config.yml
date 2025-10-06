@@ -1,9 +1,9 @@
 - hosts: localhost
 
   vars:
-    projects_dir: ~/Documents/Projects
+    projects_dir: "{{ ansible_env.HOME }}/Documents/Projects"
     dotfiles_repo: "{{ ansible_env.HOME }}/dotfiles"
-    config: ~/.config
+    config: "{{ ansible_env.HOME }}/.config"
 
   tasks:
     - name: Install Oh-My-Zsh
