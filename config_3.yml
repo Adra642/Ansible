@@ -25,33 +25,23 @@
         name: code
         state: present
 
-    - name: Enable Zellij COPR repository
+    - name: Enable COPR repositories
       community.general.copr:
         host: copr.fedorainfracloud.org
         state: enabled
-        name: varlad/zellij
-      register: enable_zellij_copr
-      changed_when: enable_zellij_copr.changed
+        name: "{{ item }}"
+      loop:
+        - alternateved/eza
+        - wezfurlong/wezterm-nightly
+        - varlad/zellij
 
-    - name: Install Zellij
+    - name: Install packages from COPR
       ansible.builtin.dnf:
-        name: zellij
+        name:
+          - eza
+          - wezterm
+          - zellij
         state: present
-      when: enable_zellij_copr.changed
-
-    - name: Enable Eza COPR repository
-      community.general.copr:
-        host: copr.fedorainfracloud.org
-        state: enabled
-        name: alternateved/eza
-      register: enable_eza_copr
-      changed_when: enable_eza_copr.changed
-
-    - name: Install Eza
-      ansible.builtin.dnf:
-        name: eza
-        state: present
-      when: enable_eza_copr.changed
       
     # - name: Check if Bun is installed
     #   ansible.builtin.command: which bun
