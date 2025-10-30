@@ -11,7 +11,7 @@
         state: present
         disable_gpg_check: true
 
-    ## Wait for fedora 41 compatibility    
+    ## Wait for dnf5 compatibility    
     # - name: Disable unused repositories
     #   community.general.dnf_config_manager:
     #     name:

@@ -83,7 +83,7 @@
                 dest: "{{ download_dir }}/{{ theme.name }}"
 
             - name: Run installation script for Orchis-theme
-              ansible.builtin.shell: ./install.sh -l -t grey -c dark -s standard --tweaks primary submenu nord dock
+              ansible.builtin.shell: ./install.sh -l -c dark -s standard --tweaks primary submenu nord dock
               args:
                 chdir: "{{ download_dir }}/{{ theme.name }}"
           when: not gnome_theme_installed.stat.exists

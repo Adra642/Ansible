@@ -7,39 +7,39 @@
       ansible.builtin.flatpak:
         name:
           - com.brave.Browser
-          - com.spotify.Client
-          - com.jetbrains.IntelliJ-IDEA-Ultimate
-          - org.wezfurlong.wezterm
-          - net.kuribo64.melonDS
-          - com.mattjakeman.ExtensionManager
           - es.danirod.Cartero
-          - com.google.AndroidStudio
-          - com.valvesoftware.Steam
-          - com.jetbrains.DataGrip
           - com.getpostman.Postman
+          # - com.google.AndroidStudio
+          - com.jetbrains.DataGrip
+          - com.jetbrains.IntelliJ-IDEA-Ultimate
+          - com.mattjakeman.ExtensionManager
+          # - net.kuribo64.melonDS
+          - com.obsproject.Studio
+          - com.spotify.Client
+          - com.valvesoftware.Steam
+        remote: flathub
         state: present
 
     - name: Install DNF packages
       ansible.builtin.dnf:
         name:
-          - gnome-tweaks
-          - vlc
           - alacritty
-          - htop
-          - papirus-icon-theme
-          - fastfetch
-          - neovim
           - bat
-          - jetbrains-mono-fonts-all
-          - cascadia-fonts-all
-          - gparted
-          - pip
-          - fzf
-          - maven
-          - sassc
-          - libvirt
           - bleachbit
-         # - obs
+          - cascadia-fonts-all
+          - fastfetch
+          - fzf
+          - gnome-tweaks
+          - gparted
+          - htop
+          - jetbrains-mono-fonts-all
+          - libvirt
+          - maven
+          - neovim
+          - papirus-icon-theme
+          - pip
+          - sassc
+          - vlc
         state: present
 
     - name: Install Group packages
@@ -60,6 +60,5 @@
           - rhythmbox
           - firefox 
           - anaconda-webui
-          # - gnome-boxes
         state: absent
         autoremove: true
