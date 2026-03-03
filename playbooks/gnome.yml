@@ -1,0 +1,96 @@
+---
+- name: Configure GNOME settings and keybindings
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Get current color scheme
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.desktop.interface color-scheme
+      register: current_theme
+      changed_when: false
+
+    - name: Set color scheme to dark
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+      when: current_theme.stdout != "'prefer-dark'"
+      changed_when: true
+
+    - name: Get current keyboard layout
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.desktop.input-sources sources
+      register: current_layout
+      changed_when: false
+
+    - name: Set keyboard layouts
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam'), ('xkb', 'us+intl')]"
+      when: current_layout.stdout | trim != "[('xkb', 'latam'), ('xkb', 'us+intl')]"
+      changed_when: true
+
+    - name: Get current terminal custom keybindings
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings
+      register: current_terminal_binding
+      changed_when: false
+
+    - name: Register custom terminal keybinding path
+      ansible.builtin.command:
+        cmd: >-
+          gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings
+          "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+      when: current_terminal_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+      changed_when: true
+
+    - name: Configure terminal keybinding name, command, and binding
+      ansible.builtin.command: >-
+        gsettings set
+        org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
+        {{ item.action }} {{ item.value }}
+      loop:
+        - { action: "name", value: "'Alacritty'" }
+        - { action: "command", value: "'alacritty'" }
+        # - { action: "name", value: "'WezTerm'" }
+        # - { action: "command", value: "'flatpak run org.wezfurlong.wezterm'" }
+        - { action: "binding", value: "'<Control><Alt>t'" }
+      when: current_terminal_binding.stdout != "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+      changed_when: true
+
+    - name: Get current show-desktop keybinding
+      ansible.builtin.command:
+        cmd: gsettings get org.gnome.desktop.wm.keybindings show-desktop
+      register: current_show_desktop_binding
+      changed_when: false
+
+    - name: Set show-desktop keybinding to Super+D
+      ansible.builtin.command:
+        cmd: gsettings set org.gnome.desktop.wm.keybindings show-desktop "['<Super>d']"
+      when: current_show_desktop_binding.stdout != "['<Super>d']"
+      changed_when: true
+
+- name: Install GNOME extensions
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Install gnome-extensions-cli via pip
+      ansible.builtin.pip:
+        name: gnome-extensions-cli
+        state: present
+
+    - name: Install GNOME extensions
+      ansible.builtin.command:
+        argv:
+          - gext
+          - i
+          - "{{ item }}"
+        creates: "{{ ansible_facts.env.HOME }}/.local/share/gnome-shell/extensions/{{ item }}"
+      loop:
+        - blur-my-shell@aunetx
+        - caffeine@patapon.info
+        - color-picker@tuberry
+        - dash-to-dock@micxgx.gmail.com
+        - just-perfection-desktop@just-perfection
+        - mediacontrols@cliffniff.github.com
+        - user-theme@gnome-shell-extensions.gcampax.github.com
+        - Vitals@CoreCoding.com

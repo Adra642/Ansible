@@ -1,26 +1,31 @@
-- hosts: localhost
+---
+- name: Configure system with dotfiles
+  hosts: localhost
+  connection: local
 
   vars:
-    dotfiles_repo: "{{ ansible_env.HOME }}/.dotfiles"
-    config: "{{ ansible_env.HOME }}/.config"
+    dotfiles_repo: "{{ ansible_facts.env.HOME }}/.dotfiles"
+    config: "{{ ansible_facts.env.HOME }}/.config"
 
   tasks:
-    - name: Clonar el repositorio de dotfiles
+    - name: Clone dotfiles repository
       ansible.builtin.git:
         repo: git@github.com:Adra642/.dotfiles.git
         dest: "{{ dotfiles_repo }}"
-        update: true
+        update: false
+        version: main
 
-    - name: Hacer ejecutable wallpaper_selector.sh
+    - name: Make wallpaper_selector.sh executable
       ansible.builtin.file:
         path: "{{ dotfiles_repo }}/wallpaper/wallpaper_selector.sh"
-        mode: '0755'
+        mode: "0755"
         state: file
 
-    - name: Crear directorios necesarios en config
+    - name: Create required config directories
       ansible.builtin.file:
         path: "{{ config }}/{{ item }}"
         state: directory
+        mode: "0755"
       loop:
         - alacritty
         - autostart
@@ -32,13 +37,13 @@
         - zsh
         - fastfetch
 
-    - name: Crear enlace simbólico de .zshenv
+    - name: Create .zshenv symlink in home directory
       ansible.builtin.file:
         src: "{{ dotfiles_repo }}/zsh/.zshenv"
-        dest: "{{ ansible_env.HOME }}/.zshenv"
+        dest: "{{ ansible_facts.env.HOME }}/.zshenv"
         state: link
 
-    - name: Crear enlaces simbólicos
+    - name: Create config symlinks
       ansible.builtin.file:
         src: "{{ dotfiles_repo }}/{{ item }}"
         dest: "{{ config }}/{{ item }}"
@@ -46,9 +51,7 @@
       loop:
         - alacritty/alacritty.toml
         - alacritty/current_scheme.toml
-        - autostart/wallpaper_selector.desktop
         - color_selector/alacritty_color.py
-        - color_selector/color_schemes.toml
         - color_selector/color_scheme_selector.py
         - color_selector/wezterm_color.py
         - color_selector/zellij_color.py
@@ -60,16 +63,24 @@
         - zellij/themes/scheme.kdl
         - zsh/.zshrc
 
-    - name: Descargar plugins wasm en zellij
+    - name: Create autostart symlink for wallpaper selector
+      ansible.builtin.file:
+        src: "{{ dotfiles_repo }}/wallpaper/wallpaper_selector.desktop"
+        dest: "{{ config }}/autostart/wallpaper_selector.desktop"
+        state: link
+
+    - name: Download zellij wasm plugins
       ansible.builtin.get_url:
         url: "{{ item.url }}"
         dest: "{{ config }}/zellij/plugins/{{ item.dest }}"
-        mode: '0644'
+        mode: "0644"
       loop:
-        - { url: 'https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm', dest: 'zjstatus.wasm' }
-        - { url: 'https://github.com/karimould/zellij-forgot/releases/latest/download/zellij_forgot.wasm', dest: 'zellij_forgot.wasm' }
-        
-    - name: Instalar toml usando pip
+        - url: "https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm"
+          dest: "zjstatus.wasm"
+        - url: "https://github.com/karimould/zellij-forgot/releases/latest/download/zellij_forgot.wasm"
+          dest: "zellij_forgot.wasm"
+
+    - name: Install toml Python package
       ansible.builtin.pip:
         name: toml
         state: present
