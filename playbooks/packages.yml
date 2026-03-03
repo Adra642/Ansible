@@ -1,22 +1,29 @@
-- hosts: localhost
+---
+- name: Install Fedora packages and Flatpak applications
+  hosts: localhost
   connection: local
   become: true
 
   tasks:
     - name: Install Flatpak packages
-      ansible.builtin.flatpak:
+      community.general.flatpak:
         name:
           - com.brave.Browser
-          - es.danirod.Cartero
-          - com.getpostman.Postman
+          - com.discordapp.Discord
+          - com.github.tchx84.Flatseal
           # - com.google.AndroidStudio
           - com.jetbrains.DataGrip
           - com.jetbrains.IntelliJ-IDEA-Ultimate
           - com.mattjakeman.ExtensionManager
-          # - net.kuribo64.melonDS
-          - com.obsproject.Studio
           - com.spotify.Client
+          - com.usebottles.bottles
+          - com.usebruno.Bruno
           - com.valvesoftware.Steam
+          # - net.kuribo64.melonDS
+          - net.lrclib.lrcge
+          - org.eclipse.Java
+          - org.inkscape.Inkscape
+          - org.jellyfin.JellyfinDesktop
         remote: flathub
         state: present
 
@@ -32,19 +39,24 @@
           - gnome-tweaks
           - gparted
           - htop
+          - ibm-plex-fonts-all
           - jetbrains-mono-fonts-all
           - libvirt
           - maven
+          - mpv
           - neovim
-          - papirus-icon-theme
-          - pip
+          - obs-studio
+          - python3-pip
+          - quodlibet
           - sassc
+          - steam-devices
           - vlc
+          - wireguard-tools
         state: present
 
-    - name: Install Group packages
+    - name: Install package groups
       ansible.builtin.dnf:
-        name: 
+        name:
           - "@Multimedia"
           - "@Development Tools"
         state: present
@@ -52,13 +64,13 @@
     - name: Remove unwanted GNOME software
       ansible.builtin.dnf:
         name:
-          - gnome-tour
-          - totem
-          - mediawriter
-          - yelp
-          - gnome-contacts
-          - rhythmbox
-          - firefox 
+          - anaconda-live
           - anaconda-webui
+          - decibels
+          - gnome-contacts
+          - gnome-tour
+          - mediawriter
+          - showtime
+          - yelp
         state: absent
         autoremove: true

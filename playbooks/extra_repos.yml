@@ -1,4 +1,6 @@
-- hosts: localhost
+---
+- name: Add repositories and install packages from COPR and Microsoft
+  hosts: localhost
   connection: local
   become: true
 
@@ -11,6 +13,7 @@
     - name: Add Visual Studio Code repository
       ansible.builtin.copy:
         dest: /etc/yum.repos.d/vscode.repo
+        mode: "0644"
         content: |
           [code]
           name=Visual Studio Code
@@ -42,7 +45,7 @@
           - wezterm
           - zellij
         state: present
-      
+
     # - name: Check if Bun is installed
     #   ansible.builtin.command: which bun
     #   register: bun_installed

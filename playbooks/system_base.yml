@@ -1,7 +1,9 @@
-- hosts: localhost
+---
+- name: Configure Fedora system with RPM Fusion and basic packages
+  hosts: localhost
   connection: local
   become: true
-  
+
   tasks:
     - name: Install RPM Fusion Free and Non-Free Repositories
       ansible.builtin.dnf:
@@ -11,26 +13,25 @@
         state: present
         disable_gpg_check: true
 
-    ## Wait for dnf5 compatibility    
-    # - name: Disable unused repositories
-    #   community.general.dnf_config_manager:
-    #     name:
-    #       - google-chrome
-    #       - copr:copr.fedorainfracloud.org:phracek:PyCharm
-    #       - rpmfusion-nonfree-nvidia-driver
-    #       - rpmfusion-nonfree-steam
-    #     state: disabled
+    - name: Disable unused repositories
+      ansible.builtin.command: dnf config-manager setopt {{ item }}.enabled=0
+      loop:
+        - google-chrome
+        - copr:copr.fedorainfracloud.org:phracek:PyCharm
+        - rpmfusion-nonfree-nvidia-driver
+        - rpmfusion-nonfree-steam
 
-    - name: Configure dnf
+    - name: Configure dnf parallel downloads
       ansible.builtin.lineinfile:
         path: /etc/dnf/dnf.conf
         line: "max_parallel_downloads=10"
         create: true
+        mode: "0644"
         state: present
 
     - name: Install basic programs
       ansible.builtin.dnf:
-        name: 
+        name:
           - zsh
         state: present
 
@@ -38,10 +39,3 @@
       ansible.builtin.dnf:
         name: "*"
         state: latest
-
-    # - name: Set Zsh as default shell
-    #   ansible.builtin.user:
-    #       name: "{{ ansible_env.USER }}"
-    #       shell: /bin/zsh
-    # become: false
-
