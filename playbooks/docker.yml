@@ -1,0 +1,62 @@
+---
+- name: Install Docker and configure user permissions
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Add Docker repository
+      ansible.builtin.command:
+        cmd: dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+        creates: /etc/yum.repos.d/docker-ce.repo
+      changed_when: false
+
+    - name: Install Docker packages
+      ansible.builtin.dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Add user to Docker group
+      ansible.builtin.user:
+        name: "{{ target_user }}"
+        groups: docker
+        append: true
+
+- name: Start Docker service and pull images
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Start Docker service
+      ansible.builtin.systemd_service:
+        name: docker
+        state: started
+      become: true
+
+    - name: Pull Docker images
+      community.docker.docker_image_pull:
+        name: "{{ item }}"
+      loop:
+        - postgres
+        - mysql
+        - sonarqube
+        - alpine
+      become: false
+
+    - name: Check if custom Docker image path exists
+      ansible.builtin.stat:
+        path: "{{ ansible_facts.env.HOME }}/Music/Docker Image"
+      register: docker_image_path
+
+    - name: Build custom Docker image from Dockerfile
+      community.docker.docker_image_build:
+        name: streamrip
+        path: "{{ ansible_facts.env.HOME }}/Music/Docker Image"
+        dockerfile: Dockerfile
+      become: false
+      when: docker_image_path.stat.exists

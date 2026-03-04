@@ -1,0 +1,42 @@
+---
+- name: Configure Git and SSH keys
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Set Git user configuration
+      community.general.git_config:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        scope: global
+      loop:
+        - { key: "user.email", value: "{{ user_email }}" }
+        - { key: "user.name", value: "{{ user_name }}" }
+
+    - name: Create .ssh directory in home
+      ansible.builtin.file:
+        path: "{{ ansible_facts.env.HOME }}/.ssh"
+        state: directory
+        mode: "0700"
+
+    - name: Generate an OpenSSH keypair using ed25519
+      community.crypto.openssh_keypair:
+        path: "{{ ansible_facts.env.HOME }}/.ssh/id_ed25519_github"
+        comment: "{{ user_email }}"
+        type: ed25519
+        mode: "0600"
+        state: present
+      register: ssh_key
+
+    - name: Check if SSH key is already loaded in agent
+      ansible.builtin.shell: >-
+        set -o pipefail &&
+        ssh-add -l | grep -q "{{ ansible_facts.env.HOME }}/.ssh/id_ed25519_github"
+      register: key_loaded
+      failed_when: key_loaded.rc not in [0, 1]
+      changed_when: false
+
+    - name: Add SSH key to agent
+      ansible.builtin.command: ssh-add {{ ansible_facts.env.HOME }}/.ssh/id_ed25519_github
+      when: key_loaded.rc != 0
+      changed_when: true
