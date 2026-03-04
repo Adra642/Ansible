@@ -1,0 +1,15 @@
+---
+- name: Check if Vimix-cursors theme is installed
+  ansible.builtin.stat:
+    path: "{{ share_dir }}/icons/{{ cursor.name }}"
+  register: cursor_theme_installed
+
+- name: Clone Vimix-cursors repository
+  when: not cursor_theme_installed.stat.exists
+  ansible.builtin.git:
+    repo: "{{ cursor.url }}"
+    dest: "/tmp/{{ cursor.name }}"
+    update: false
+    version: master
+  changed_when: not cursor_theme_installed.stat.exists
+  notify: Install Vimix cursors

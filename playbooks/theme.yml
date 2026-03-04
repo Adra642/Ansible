@@ -1,0 +1,52 @@
+---
+- name: Install theme, icons, cursor and font
+  hosts: localhost
+  connection: local
+
+  vars:
+    font:
+      name: "IosevkaTerm"
+      url: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IosevkaTerm.zip"
+    cursor:
+      name: "Vimix-cursors"
+      url: "https://github.com/vinceliuice/Vimix-cursors.git"
+    theme:
+      name: "Orchis-theme"
+      url: "https://github.com/vinceliuice/Orchis-theme.git"
+    share_dir: "{{ ansible_facts.env.HOME }}/.local/share"
+
+  tasks:
+    - name: Include icons installation tasks
+      ansible.builtin.include_tasks: tasks/icons_install.yml
+
+    - name: Include font installation tasks
+      ansible.builtin.include_tasks: tasks/font_install.yml
+
+    - name: Include cursor installation tasks
+      ansible.builtin.include_tasks: tasks/cursor_install.yml
+
+    - name: Include theme installation tasks
+      ansible.builtin.include_tasks: tasks/theme_install.yml
+
+  handlers:
+    - name: Install Papirus icons
+      ansible.builtin.command: /tmp/papirus-install.sh
+      environment:
+        DESTDIR: "{{ share_dir }}/icons"
+      changed_when: true
+
+    - name: Update font cache
+      ansible.builtin.command: fc-cache -fv
+      changed_when: false
+
+    - name: Install Vimix cursors
+      ansible.builtin.command: ./install.sh
+      args:
+        chdir: "/tmp/{{ cursor.name }}"
+      changed_when: true
+
+    - name: Install Orchis theme
+      ansible.builtin.command: ./install.sh -l -c dark -s standard --tweaks primary submenu nord dock
+      args:
+        chdir: "/tmp/{{ theme.name }}"
+      changed_when: true

@@ -1,0 +1,16 @@
+---
+- name: Check if Orchis-theme is installed
+  ansible.builtin.stat:
+    path: "{{ share_dir }}/themes/Orchis-Dark-Nord"
+  register: gnome_theme_installed
+
+- name: Clone Orchis-theme repository
+  when: not gnome_theme_installed.stat.exists
+  ansible.builtin.git:
+    repo: "{{ theme.url }}"
+    dest: "/tmp/{{ theme.name }}"
+    update: false
+    version: master
+    depth: 1
+  changed_when: not gnome_theme_installed.stat.exists
+  notify: Install Orchis theme

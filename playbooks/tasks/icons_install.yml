@@ -1,0 +1,52 @@
+---
+- name: Check if Papirus icon theme is installed
+  ansible.builtin.stat:
+    path: "{{ share_dir }}/icons/Papirus"
+  register: papirus_icons_installed
+
+- name: Download Papirus icon theme installer
+  when: not papirus_icons_installed.stat.exists
+  ansible.builtin.get_url:
+    url: https://git.io/papirus-icon-theme-install
+    dest: /tmp/papirus-install.sh
+    mode: "0755"
+  changed_when: not papirus_icons_installed.stat.exists
+  notify: Install Papirus icons
+
+- name: Install icon theme before applying folder colors
+  ansible.builtin.meta: flush_handlers
+
+- name: Check if papirus-folders is installed
+  ansible.builtin.stat:
+    path: /usr/bin/papirus-folders
+  register: papirus_folders_installed
+
+- name: Install papirus-folders if not present
+  when: not papirus_folders_installed.stat.exists
+  block:
+    - name: Download papirus-folders install script
+      ansible.builtin.get_url:
+        url: https://git.io/papirus-folders-install
+        dest: /tmp/papirus-folders-install.sh
+        mode: "0755"
+
+    - name: Run papirus-folders install script
+      become: true
+      ansible.builtin.command: /tmp/papirus-folders-install.sh
+      changed_when: true
+
+- name: Read papirus-folders config file
+  ansible.builtin.slurp:
+    src: "{{ ansible_facts.env.HOME }}/.config/papirus-folders/keep"
+  register: papirus_conf
+  ignore_errors: true
+
+- name: Apply Papirus Folders theme and color
+  ansible.builtin.command: papirus-folders -C bluegrey --theme Papirus-Dark
+  vars:
+    _conf: "{{ papirus_conf.content | default('') | b64decode }}"
+  when: >
+    papirus_conf is failed or
+    'color=bluegrey' not in _conf or
+    'theme=Papirus-Dark' not in _conf
+  changed_when: true
