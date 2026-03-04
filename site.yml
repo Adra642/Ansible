@@ -1,0 +1,25 @@
+---
+# Master playbook — runs the full setup in order.
+- name: System base setup
+  import_playbook: playbooks/system_base.yml
+
+- name: Install packages
+  import_playbook: playbooks/packages.yml
+
+- name: Configure extra repositories
+  import_playbook: playbooks/extra_repos.yml
+
+- name: Configure GNOME
+  import_playbook: playbooks/gnome.yml
+
+- name: Apply theme
+  import_playbook: playbooks/theme.yml
+
+- name: Configure Git and SSH keys
+  import_playbook: playbooks/git.yml
+
+- name: Configure Docker
+  import_playbook: playbooks/docker.yml
+
+- name: Deploy dotfiles
+  import_playbook: playbooks/dotfiles.yml
