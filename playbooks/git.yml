@@ -10,8 +10,8 @@
         value: "{{ item.value }}"
         scope: global
       loop:
-        - { key: "user.email", value: "{{ user_email }}" }
-        - { key: "user.name", value: "{{ user_name }}" }
+        - { key: "user.email", value: "{{ git_email }}" }
+        - { key: "user.name", value: "{{ git_name }}" }
 
     - name: Create .ssh directory in home
       ansible.builtin.file:

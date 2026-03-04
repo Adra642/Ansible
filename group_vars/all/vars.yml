@@ -1,4 +1,4 @@
 ---
-user_email: "user@mail.com"
-user_name: "User Name"
-target_user: "user"
+git_email: "user@mail.com"
+git_name: "User Name"
+docker_user: "user"

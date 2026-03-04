@@ -39,8 +39,9 @@ Edit `group_vars/all/vars.yml` with your details:
 
 ```yaml
 ---
-user_email: "your@email.com"
-user_name: "Your Name"
+git_email: "your@email.com"
+git_name: "Your Name"
+docker_user: "user"
 ```
 
 This file is committed to git. Do not put sensitive data in it — use the vault for secrets.
